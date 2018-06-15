@@ -1,11 +1,9 @@
 package com.svk.foxwebsite;
 
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
-import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -17,38 +15,10 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 
 public class FoxWebsite {
 
-	private static WebDriver driver;
-	private static WebsiteProperties prop = new WebsiteProperties("DataFile.properities");
+	private WebDriver driver;
+	private WebsiteProperties prop = new WebsiteProperties("DataFile.properities");
 
-	public static void main(String[] args) throws IOException, InterruptedException {
-
-		BrowserInit(prop.getProperty("Fox.URL"));
-		// FoxSignup();
-		FoxSignin();
-		ClickTab(prop.getProperty("Fox.ClickTabName"));
-		ClickTab("FOX"); // 
-		ScrollDown("FOX Social");
-		Thread.sleep(10000);
-		SaveinExcel();
-		ClickTab("FX");
-		ScrollDown("FOX Social");
-		ListShows("FX",1);
-		
-		ClickTab("National Geographic");
-		ScrollDown("FOX Social");
-		ListShows("National Geographic",2);
-		ClickTab("FOX Sports");
-		ScrollDown("FOX Social");
-		ListShows("FOX Sports",3);
-		ClickTab("All Shows");
-		ScrollDown("FOX Social");
-		ListShows("All Shows",4);
-
-		
-
-	}
-
-	public static void FoxSignup() throws InterruptedException {
+	public void FoxSignup() throws InterruptedException {
 		driver.findElement(By.id("path-1")).click();
 		driver.findElement(By.xpath("//button[@class='Account_signUp_3SpTs']")).click();
 		driver.findElement(By.xpath("//input[@name='signupFirstName']"))
@@ -80,7 +50,7 @@ public class FoxWebsite {
 		driver.findElement(By.xpath("//div[@class='Account_signupSuccessButton_1mM7y']")).click();
 	}
 
-	public static void FoxSignin() throws InterruptedException {
+	public void FoxSignin() throws InterruptedException {
 		driver.get(prop.getProperty("Fox.URL"));
 		driver.findElement(By.id("path-1")).click();
 		driver.findElement(By.xpath("//button[@class='Account_signIn_Q0B7n']")).click();
@@ -92,7 +62,7 @@ public class FoxWebsite {
 		driver.manage().window().maximize();
 	}
 
-	public static WebDriver BrowserInit(String URL) {
+	public WebDriver BrowserInit(String URL) {
 		if (prop.getProperty("Browser.name").equals("Chrome")) {
 			System.setProperty("webdriver.chrome.driver", prop.getProperty("Browser.Chrome.path"));
 			driver = new ChromeDriver();
@@ -104,28 +74,21 @@ public class FoxWebsite {
 		return driver;
 	}
 	
-	public static void ClickTab(String tabName) throws InterruptedException {
-		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-		Thread.sleep(5000);
+	public void ClickTab(String tabName, String scrollDonElement, int sleepTime) throws InterruptedException {
+		//driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 		driver.findElement(By.xpath("//a[@href='/shows/']")).click();
-		driver.findElement(By.linkText(tabName)).click();
 		Thread.sleep(1000);
+		driver.findElement(By.linkText(tabName)).click();
+		if(scrollDonElement != null && !"".equals(scrollDonElement)){
+			JavascriptExecutor js = (JavascriptExecutor) driver;
+			WebElement Element = driver.findElement(By.linkText(scrollDonElement));
+			js.executeScript("arguments[0].scrollIntoView();", Element);
+		}
+		Thread.sleep(sleepTime);
 	}
 
 
-
-	public static void ScrollDown(String elementName) throws InterruptedException  {
-		JavascriptExecutor js = (JavascriptExecutor) driver;
-
-		// Find element by link text and store in variable "Element"
-		WebElement Element = driver.findElement(By.linkText(elementName));
-
-		// This will scroll the page till the element is found
-		js.executeScript("arguments[0].scrollIntoView();", Element);
-		Thread.sleep(2000); 
-	}
-
-	public static void SaveinExcel() {
+	public void ExportLast4Shows() {
 		List<WebElement> TotalShows = driver
 				.findElements(By.xpath("//a[@class='Tile_title_2XOxg MovieTile_title_1u6rs']"));
 		System.out.println(TotalShows.size());
@@ -145,7 +108,7 @@ public class FoxWebsite {
 		book.writeData(last4Shows);
 
 	}
-	public static void ListShows(String showName, int order) {
+	public void ListShows(String showName, int order) {
 		List<WebElement> TotalShows = driver
 				.findElements(By.xpath("//a[@class='Tile_title_2XOxg MovieTile_title_1u6rs']"));
 		System.out.println(TotalShows.size());
@@ -154,7 +117,7 @@ public class FoxWebsite {
 		fourShows[0][0] = "So You Think You Can Dance";
 		fourShows[1][0] = "Meghan Markle: An American Princess";
 		fourShows[2][0] = "Hypnotize Me";
-		fourShows[3][0] = " 24 Hours To Hell & Back";
+		fourShows[3][0] = "24 Hours To Hell & Back";
 		fourShows[0][1] = "Not Displayed";
 		fourShows[1][1] = "Not Displayed";
 		fourShows[2][1] = "Not Displayed";
@@ -176,6 +139,30 @@ public class FoxWebsite {
 		book.writeData(fourShows);
 		
 
+	}
+	public String[][] VerifyShows(String tabName, String[] shows,String ExcelFile) {
+		List<WebElement> TotalShows = driver.findElements(By.xpath("//a[@class='Tile_title_2XOxg MovieTile_title_1u6rs']"));
+		Iterator<WebElement> itr = TotalShows.iterator();
+		String showsList[][] = new String[shows.length][2];
+		for(int i=0; i< shows.length; i++){
+			showsList[i][0] = shows[i];
+			showsList[i][1] = "Not Displayed";
+		}
+
+		while(itr.hasNext()) {
+			String show = itr.next().getText();
+			for (int i = 0; i<shows.length; i++) {
+				if(show.contains(shows[i])) {			
+					showsList[i][1] = "Displayed";
+				}
+			}
+		}
+
+		if(ExcelFile != null && !"".equals(ExcelFile)){
+			ExcelWorkBook book = new ExcelWorkBook(ExcelFile, tabName);			
+			book.writeData(showsList);
+		}
+		return showsList;
 	}
 
 }
