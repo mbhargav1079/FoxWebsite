@@ -1,0 +1,14 @@
+Browser.Firefox.path=C:\\Users\\Bhargav\\Downloads\\geckodriver-v0.19.1-win64\\geckodriver.exe
+Browser.Chrome.path=C:\\Users\\Bhargav\\Downloads\\chromedriver_win32 (1)\\chromedriver.exe
+Browser.name=Chrome
+Fox.URL=https://www.fox.com/
+Fox.Signup.Username=b
+Fox.Signup.Password=v
+Fox.Signup.Email=b@gmail.com
+Fox.Signup.Password=123
+Fox.Signup.Gender=male
+Fox.Signup.Birthdate=07181990
+Fox.Signin.Email=test@gmail.com
+Fox.Signin.Password=test1234
+Excel.File=C:\\Users\\Bhargav\\Desktop\\New folder\\Test.xlsx
+Fox.ClickTabName=All Shows
